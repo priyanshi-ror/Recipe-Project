@@ -1,8 +1,7 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
 
 function RecipeCard({ recipe }) {
-   const {
+  const {
     id,
     prepTimeMinutes,
     cookTimeMinutes,
@@ -15,40 +14,36 @@ function RecipeCard({ recipe }) {
   const totalTime = prepTimeMinutes + cookTimeMinutes;
 
   return (
-    <Link
-      to={`/recipe/${id}`}
-      className="bg-card border border-border rounded-md hover:border-accent overflow-hidden flex flex-col"
-    >
-      <img
-        src={image}
-        alt={name}
-        className="h-48 w-full object-cover"
-      />
-      <div className="p-4 flex flex-col flex-1">
-        <h3 className="font-serif font-bold text-lg text-text mb-1">
-          {name}
-        </h3>
-        <p className="text-sm text-muted mb-3">
-          {cuisine} - {difficulty}
-        </p>
-        <div className="mt-auto flex justify-between items-center text-sm">
-          <span className="flex items-center gap-1 font-medium">
-            <svg className="w-4 h-4 fill-accent" viewBox="0 0 24 24">
-              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+    <Link to={`/recipe/${id}`} className="recipe-card">
+      <div className="recipe-card-image-wrap">
+        <img src={image} alt={name} className="recipe-card-image" loading="lazy" />
+        <span className="recipe-difficulty">{difficulty}</span>
+        <span className="recipe-card-arrow" aria-hidden="true">
+          <svg viewBox="0 0 20 20" fill="none">
+            <path d="M4 10h12m-5-5 5 5-5 5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </span>
+      </div>
+      <div className="recipe-card-content">
+        <p className="recipe-cuisine">{cuisine}</p>
+        <h3>{name}</h3>
+        <div className="recipe-card-meta">
+          <span className="rating">
+            <svg viewBox="0 0 20 20" aria-hidden="true">
+              <path d="m10 1.8 2.5 5.1 5.6.8-4 3.9 1 5.6-5.1-2.7-5.1 2.7 1-5.6-4-3.9 5.6-.8L10 1.8Z" />
             </svg>
             {rating}
           </span>
-          <span className="flex items-center gap-1 text-muted">
-            <svg className="w-4 h-4 stroke-muted fill-none" strokeWidth="2" viewBox="0 0 24 24">
-              <circle cx="12" cy="12" r="10" />
-              <polyline points="12 6 12 12 16 14" />
+          <span className="cook-time">
+            <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+              <circle cx="10" cy="10" r="7.5" />
+              <path d="M10 5.5V10l3 1.8" />
             </svg>
-            {totalTime} mins
+            {totalTime} min
           </span>
         </div>
       </div>
     </Link>
-
   );
 }
 

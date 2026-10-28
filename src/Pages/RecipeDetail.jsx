@@ -3,135 +3,150 @@ import { Link, useParams } from "react-router-dom";
 import axios from "axios";
 import Loading from "./Loading";
 
-
 function RecipeDetail() {
-  const [recipe, setRecipe] = useState({});
+  const [recipe, setRecipe] = useState(null);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
-
   const { id } = useParams();
 
-  async function fetchRecipe() {
-    setLoading();
-    try {
-      const { data } = await axios.get(`https://dummyjson.com/recipes/${id}`);
-    
-      setRecipe(data);
-    } catch (error) {
-      setErrorMsg("Could not load recipe details. Please try again.");
-    }
-    setLoading(false);
-  }
-
   useEffect(() => {
+    let active = true;
+
+    async function fetchRecipe() {
+      setLoading(true);
+      setErrorMsg("");
+      try {
+        const { data } = await axios.get(`https://dummyjson.com/recipes/${id}`);
+        if (active) setRecipe(data);
+      } catch {
+        if (active) setErrorMsg("Could not load recipe details. Please try again.");
+      } finally {
+        if (active) setLoading(false);
+      }
+    }
+
     fetchRecipe();
-  }, []);
+    return () => {
+      active = false;
+    };
+  }, [id]);
 
   if (loading) {
     return <Loading />;
   }
 
-  if (errorMsg) {
+  if (errorMsg || !recipe) {
     return (
-      <main className="max-w-6xl mx-auto px-4 py-8">
-          <Link
-            to="/"
-          className="text-accent hover:underline inline-flex items-center gap-1 mb-4"
-        >
-          <svg
-            className="w-4 h-4 stroke-current fill-none"
-            strokeWidth="2"
-            viewBox="0 0 24 24"
-          >
-            <line x1="19" y1="12" x2="5" y2="12" />
-            <polyline points="12 19 5 12 12 5" />
+      <main className="detail-page">
+        <Link to="/" className="back-link">
+          <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+            <path d="M16 10H4m5 5-5-5 5-5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
-          Back to Home
-          </Link>
-        <p className="text-accent">{errorMsg || "Recipe not found."}</p>
+          Back to discover
+        </Link>
+        <div className="message-panel error-panel" role="alert">
+          <span className="message-icon">!</span>
+          <div>
+            <strong>We couldn’t find this recipe.</strong>
+            <p>{errorMsg || "It may have been moved or removed."}</p>
+          </div>
+        </div>
       </main>
     );
   }
 
-  return (
-    <main className="max-w-6xl mx-auto px-4 py-8">
-        <Link
-          to="/"
-        className="text-accent hover:underline inline-flex items-center gap-1 mb-6"
-      >
-        <svg
-          className="w-4 h-4 stroke-current fill-none"
-          strokeWidth="2"
-          viewBox="0 0 24 24"
-        >
-          <line x1="19" y1="12" x2="5" y2="12" />
-          <polyline points="12 19 5 12 12 5" />
-          </svg>
-        Back to Home
-        </Link>
+  const totalTime = recipe.prepTimeMinutes + recipe.cookTimeMinutes;
 
-      <div className="flex flex-col md:flex-row gap-8 mb-8">
-              <img
-                src={recipe.image}
-                alt={recipe.name}
-          className="w-full md:w-1/2 h-80 object-cover rounded-md border border-border"
-        />
-        <div className="md:w-1/2 flex flex-col justify-center">
-          <h1 className="font-serif text-3xl font-bold text-text mb-2">
-                {recipe.name}
-              </h1>
-          <p className="text-muted mb-4">
-            {recipe.cuisine} - {recipe.difficulty}
+  return (
+    <main className="detail-page">
+      <Link to="/" className="back-link">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <path d="M16 10H4m5 5-5-5 5-5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+        Back to discover
+      </Link>
+
+      <section className="detail-hero">
+        <div className="detail-image-wrap">
+          <img src={recipe.image} alt={recipe.name} className="detail-image" />
+          <span className="detail-image-label">{recipe.cuisine} kitchen</span>
+        </div>
+        <div className="detail-intro">
+          <p className="eyebrow"><span /> THE GOOD STUFF</p>
+          <h1>{recipe.name}</h1>
+          <p className="detail-summary">
+            A lovely {recipe.difficulty.toLowerCase()} recipe from the {recipe.cuisine} kitchen.
+            Gather your ingredients and let’s make something memorable.
           </p>
-          <div className="flex items-center gap-1 mb-4 font-medium">
-            <svg className="w-4 h-4 fill-accent" viewBox="0 0 24 24">
-              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+          <div className="detail-rating">
+            <svg viewBox="0 0 20 20" aria-hidden="true">
+              <path d="m10 1.8 2.5 5.1 5.6.8-4 3.9 1 5.6-5.1-2.7-5.1 2.7 1-5.6-4-3.9 5.6-.8L10 1.8Z" />
             </svg>
-            <span>
-              {recipe.rating} ({recipe.reviewCount} reviews)
-                    </span>
-                  </div>
-          <div className="grid grid-cols-2 gap-2 text-sm border-t border-border pt-4 mb-4">
-            <p>
-              <strong>Prep time:</strong> {recipe.prepTimeMinutes} mins
-            </p>
-            <p>
-              <strong>Cook time:</strong> {recipe.cookTimeMinutes} mins
-            </p>
-            <p>
-              <strong>Servings:</strong> {recipe.servings}
-            </p>
-            <p>
-              <strong>Calories:</strong> {recipe.caloriesPerServing} kcal
-            </p>
-              </div>
-          <p className="text-sm text-muted mb-1">
-            <strong>Meal Type:</strong> {recipe?.mealType?.join(", ")}
-          </p>
-          <p className="text-sm text-muted">
-            <strong>Tags:</strong> {recipe?.tags?.join(", ")}
-              </p>
+            <strong>{recipe.rating}</strong>
+            <span>({recipe.reviewCount} reviews)</span>
+          </div>
+          <div className="detail-stats">
+            <div className="detail-stat">
+              <span className="stat-label">PREP</span>
+              <strong>{recipe.prepTimeMinutes} <small>min</small></strong>
+            </div>
+            <div className="detail-stat">
+              <span className="stat-label">COOK</span>
+              <strong>{recipe.cookTimeMinutes} <small>min</small></strong>
+            </div>
+            <div className="detail-stat">
+              <span className="stat-label">TOTAL</span>
+              <strong>{totalTime} <small>min</small></strong>
+            </div>
+            <div className="detail-stat">
+              <span className="stat-label">SERVES</span>
+              <strong>{recipe.servings} <small>people</small></strong>
             </div>
           </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 border-t border-border pt-8">
-              <div>
-          <h2 className="font-serif text-xl font-bold mb-4">Ingredients</h2>
-          <ul className="list-disc pl-5 space-y-1">
-            {recipe.ingredients?.map((item, index) => (
-              <li key={index}>{item}</li>
-            ))}
-            </ul>
-            </div>
-        <div>
-          <h2 className="font-serif text-xl font-bold mb-4">Instructions</h2>
-          <ol className="list-decimal pl-5 space-y-2">
-              {recipe.instructions?.map((step, index) => (
-              <li key={index}>{step}</li>
-              ))}
-            </ol>
+          <div className="detail-tags">
+            {recipe.mealType?.map((type) => <span key={type}>{type}</span>)}
+            {recipe.tags?.slice(0, 3).map((tag) => <span key={tag}>{tag}</span>)}
+          </div>
         </div>
-      </div>
+      </section>
+
+      <section className="recipe-method">
+        <div className="ingredients-panel">
+          <p className="eyebrow">FIRST, THE GOOD STUFF</p>
+          <h2>Gather your<br /><em>ingredients.</em></h2>
+          <p className="ingredients-count">{recipe.ingredients?.length} things to bring it all together</p>
+          <ul className="ingredient-list">
+            {recipe.ingredients?.map((item, index) => (
+              <li key={`${item}-${index}`}>
+                <span className="ingredient-check" aria-hidden="true">
+                  <svg viewBox="0 0 16 16" fill="none">
+                    <path d="m3.5 8 3 3 6-6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </span>
+                {item}
+              </li>
+            ))}
+          </ul>
+          <p className="calorie-note">About {recipe.caloriesPerServing} kcal per serving</p>
+        </div>
+
+        <div className="instructions-panel">
+          <p className="eyebrow">LET’S MAKE IT</p>
+          <h2>Make it with <em>love.</em></h2>
+          <ol className="instruction-list">
+            {recipe.instructions?.map((step, index) => (
+              <li key={`${index}-${step}`}>
+                <span className="instruction-number">{String(index + 1).padStart(2, "0")}</span>
+                <p>{step}</p>
+              </li>
+            ))}
+          </ol>
+          <div className="recipe-finish">
+            <span aria-hidden="true">✳</span>
+            <p>Take a moment, set the table, and enjoy every bite.</p>
+          </div>
+        </div>
+      </section>
     </main>
   );
 }
